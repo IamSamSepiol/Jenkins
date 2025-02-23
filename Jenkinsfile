@@ -8,6 +8,7 @@ pipeline {
         IMAGE_TAG = "latest"
         REPO_URL = 'https://github.com/IamSamSepiol/Jenkins.git'  // Your Git repo URL
         BRANCH = 'main'  // Change if needed
+        example 'joel'
     }
 
     stages {
