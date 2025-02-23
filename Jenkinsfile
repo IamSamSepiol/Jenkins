@@ -1,20 +1,40 @@
+
+@Library('jenkins-shared-library') _
+
 pipeline {
     agent any
 
     stages {
-        stage('build') {
+        stage('Initialize') {
             steps {
-                echo 'Building'
+                script {
+                    example('Developer')
+                }
             }
         }
-        stage('test') {
+
+        stage('Build Docker Image') {
             steps {
-                echo 'Testing'
+                sh 'docker build -t my-app:latest .'
             }
         }
-        stage('deploy') {
+
+        stage('Trivy Scan') {
             steps {
-                echo 'Deploying'
+                sh '''
+                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                -v $PWD/trivy-report:/root/.cache/ aquasec/trivy image --exit-code 1 \
+                --severity HIGH,CRITICAL my-app:latest | tee trivy-report.txt
+                '''
+            }
+        }
+
+        stage('Post Scan Actions') {
+            steps {
+                script {
+                    def scanResults = readFile('trivy-report.txt')
+                    echo scanResults
+                }
             }
         }
     }
